@@ -14,7 +14,7 @@
         <div class="container">
           <h1 class="display-4">Solid Todo</h1>
           <p class="lead" v-if="session">
-            Welcome {{ name }}. You are logged in as <i>{{ session.webId }}</i>!
+            Welcome <b v-bind:title="session.webId">{{ name }}</b></small>!
           </p>
           <p class="lead" v-if="!session">
             You aren't logged in.
@@ -40,12 +40,28 @@
     <script>
       const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
 
+      async function getStore() {
+        const store = $rdf.graph();
+        const fetcher = new $rdf.Fetcher(store);
+
+        await fetcher.load(app.$data.session.webId);
+        
+        app.$data.store = store;
+        app.$data.fetcher = fetcher;
+
+            //const fullName = store.any($rdf.sym(app.$data.session.webId), FOAF("name"));
+            //console.log(fullName);
+            //return fullName && fullName.value;
+      }
+
       var app = new Vue({
         el: '#app',
         data: {
           message: 'Hello Vue!',
           popupUri: "popup.html",
-          session: null
+          session: null,
+          store: null,
+          fetcher: null
         },
         methods: {
           login: async function(e) {
@@ -53,21 +69,21 @@
             let popupUri = this.$data.popupUri;
             if (!session)
               session = await solid.auth.popupLogin({ popupUri });
+            
+            if (session) {
+              this.$data.session = session;
+              getStore();
+            }
           },
           logout: async function(e) {
             solid.auth.logout();
+            store = null;
           }
         },
         computed: {
-          name: async function() {
-            const store = $rdf.graph();
-            const fetcher = new $rdf.Fetcher(store);
-
-            await fetcher.load(app.$data.session.webId);
-
-            const fullName = store.any($rdf.sym(app.$data.session.webId), FOAF("name"));
-            console.log(fullName);
-            return fullName && fullName.value;
+          name: function() {
+            let name = this.$data.store.any($rdf.sym(this.$data.session.webId), FOAF("name"));
+            return name && name.value;
           }
         }
       });
