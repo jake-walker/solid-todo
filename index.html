@@ -125,8 +125,8 @@
             This is just some information that is calculated and/or fetched from your Solid Pod.
           </p>
           <ul>
-            <li><b>Storage Location:</b> <code>{{ storageFile }}</code></li>
-            <li><b>WebID:</b> <code>{{ session.webId }}</code></li>
+            <li v-if="session"><b>Storage Location:</b> <code>{{ storageFile }}</code></li>
+            <li v-if="session"><b>WebID:</b> <code>{{ session.webId }}</code></li>
           </ul>
         </div>
 
