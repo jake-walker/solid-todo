@@ -25,7 +25,8 @@ var app = new Vue({
     session: null,
     store: null,
     fetcher: null,
-    todos: []
+    todos: [],
+    page: "tasks"
   },
   methods: {
     login: function(e) {
@@ -120,11 +121,6 @@ var app = new Vue({
     name: function() {
       let name = this.store.any($rdf.sym(this.session.webId), FOAF("name"));
       return name && name.value;
-    }
-  },
-  filters: {
-    pretty: function(value) {
-      return JSON.stringify(value, null, 2);
     }
   },
   watch: {
