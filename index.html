@@ -5,10 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto|Inconsolata" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Space+Mono|Work+Sans" rel="stylesheet">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/default.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/favicons/site.webmanifest">
+    <link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#38ef7d">
+    <link rel="shortcut icon" href="/favicons/favicon.ico">
+    <meta name="apple-mobile-web-app-title" content="Solid Todo">
+    <meta name="application-name" content="Solid Todo">
+    <meta name="msapplication-TileColor" content="#00a300">
+    <meta name="msapplication-config" content="/favicons/browserconfig.xml">
+    <meta name="theme-color" content="#38ef7d">
 
     <style>
       .section {
@@ -20,12 +32,23 @@
         height: 1em;
       }
       
+      h1, h2, h3, h4, h5, h6, .h {
+        font-family: 'Space Mono', monospace;
+      }
+      
       body {
-        font-family: 'Roboto', sans-serif;
+        font-family: 'Work Sans', sans-serif;
       }
 
       pre, code, kbd, samp {
-        font-family: 'Inconsolata', monospace;
+        font-family: 'Space Mono', monospace;
+      }
+
+      .background-gradient {
+        background: #38ef7d; /* fallback for old browsers */
+        background: -webkit-linear-gradient(to right, #11998e, #38ef7d); /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(to right, #11998e, #38ef7d);
+        color: #fff;
       }
     </style>
 
@@ -33,7 +56,7 @@
   </head>
   <body>
     <div id="app">
-      <div class="jumbotron jumbotron-fluid">
+      <div class="jumbotron jumbotron-fluid background-gradient">
         <div class="container">
           <h1 class="display-4">Solid Todo</h1>
           <p class="lead" v-if="session">
@@ -43,23 +66,27 @@
             Using file <code>{{ storageFile }}</code> for storage.
           </p>
           <p class="lead" v-if="!session">
-            You aren't logged in.
+            You are not logged in.
           </p>
-          <p class="lead">
-            <button v-if="!session" v-on:click="login()" type="button" class="btn btn-primary">Login</button>
-            <button v-if="session" v-on:click="logout()" type="button" class="btn btn-primary">Logout</button>
-            <button v-if="session" v-on:click="save()" type="button" class="btn btn-primary">Save</button>
-            <button v-if="session" v-on:click="load()" type="button" class="btn btn-primary">Load</button>
-          </p>
+          <div class="btn-group" role="group">
+            <button v-if="!session" v-on:click="login()" type="button" class="btn btn-success"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <button v-if="session" v-on:click="logout()" type="button" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button v-if="session" v-on:click="save()" type="button" class="btn btn-outline-light"><i class="fas fa-cloud-upload-alt"></i> Manual Save</button>
+            <button v-if="session" v-on:click="load()" type="button" class="btn btn-outline-light"><i class="fas fa-cloud-download-alt"></i> Manual Load</button>
+          </div>
         </div>
       </div>
 
       <div class="section container">
-        <h2>Todos ({{ todos.length }})</h2>
+        <h2>Todos</h2>
 
         <div v-if="!session" class="alert alert-warning" role="alert">
-          You aren't logged in so your todo list won't be saved.
+          <i class="fas fa-exclamation-triangle"></i> <a href="#" class="alert-link" v-on:click="login()">Login</a> to your Solid Pod to save your todo items.
         </div>
+
+        <p>
+          You have {{ todos.length }} items on your todo list.
+        </p>
 
         <button type="button" class="btn btn-success" v-on:click="add()"><i class="fas fa-plus"></i> &nbsp; Add</button>
         <div class="divider"></div>
@@ -97,155 +124,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
-    <script>
-      const fileClient = new SolidFileClient();
-      const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
-
-      toastr.options = {
-        "closeButton": false,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": true,
-        "positionClass": "toast-bottom-right",
-        "preventDuplicates": true,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "2000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-      }
-
-      var app = new Vue({
-        el: '#app',
-        data: {
-          session: null,
-          store: null,
-          fetcher: null,
-          todos: []
-        },
-        methods: {
-          login: function(e) {
-            fileClient.popupLogin().then(webId => {
-              if (!webId) {
-                console.log("ERROR", fileClient.err);
-                return;
-              }
-              
-              console.log("Logged in using Vue method.");
-            });
-          },
-          logout: function(e) {
-            fileClient.logout().then(() => {
-              console.log("Logged out using Vue method.");
-            });
-          },
-          add: function(e) {
-            this.todos.push({
-              id: uuid(),
-              name: prompt("What is your task?"),
-              done: false
-            });
-          },
-          save: function() {
-            if (!this.session) { return; }
-
-            fileClient.readFile(this.storageFile).then(success => {
-              if (!success) {
-                fileClient.createFile(this.storageFile).then(success => {
-                  if (!success) console.log("CREATE ERROR", fileClient.err)
-                  else console.log("Created storage file");
-                });
-              }
-
-              fileClient.updateFile(this.storageFile, JSON.stringify(this.todos)).then(success => {
-                if (!success) {
-                  console.log("UPDATE ERROR", fileClient.err);
-                  return;
-                }
-
-                console.log("SAVED!");
-                toastr.success("Successfully saved todo list to Solid", "Saved!");
-              });
-            });
-          },
-          load: function() {
-            if (!this.session) { return; }
-
-            fileClient.readFile(this.storageFile).then(body => {
-              if (!body) {
-                console.log("READ ERROR", fileClient.err);
-                return;
-              }
-
-              console.log("CONTENT", body.value);
-              toastr.success("Successfully loaded todo list from Solid", "Loaded!");
-              this.todos = JSON.parse(body.value);
-            });
-          }
-        },
-        computed: {
-          storageFile: function() {
-            if (!this.session) {
-              return "";
-            }
-
-            var url = this.session.webId.split("/")[2];
-            return `https://${url}/public/todo.json`;
-          },
-          name: function() {
-            let name = this.store.any($rdf.sym(this.session.webId), FOAF("name"));
-            return name && name.value;
-          }
-        },
-        filters: {
-          pretty: function(value) {
-            return JSON.stringify(value, null, 2);
-          }
-        },
-        watch: {
-          todos: {
-            handler(val){
-              console.log("Todos updated.");
-              this.debounceSave();
-            },
-            deep: true
-          }
-        },
-        created: function () {
-          this.debounceSave = _.debounce(this.save, 2500)
-        },
-      });
-
-      function uuid() {
-        function s4() {
-          return Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
-        }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-      }
-
-      solid.auth.trackSession(async function(session) {
-        console.log("Session updated, updating in Vue...");
-
-        if (session) {
-          let store = $rdf.graph();
-          let fetcher = new $rdf.Fetcher(store);
-
-          await fetcher.load(session.webId);
-
-          app.store = store;
-          app.fetcher = fetcher;
-        }
-
-        app.session = session;
-
-        app.load();
-      });
-    </script>
+    <script src="/index.js"></script>
   </body>
 </html>
