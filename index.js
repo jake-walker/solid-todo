@@ -51,12 +51,12 @@ var app = new Vue({
       var task = prompt("What is your task?");
 
       if (task && task.trim() != "") {
-        var task = {
+        var newTask = {
           id: uuid(),
           name: task,
           done: false
         };
-        this.todos.push(task);
+        this.todos.push(newTask);
         toastr.success(`Added '${task}' to your todo list.`);
         log("success", "app>methods>add", "Added new task", task);
       } else {
