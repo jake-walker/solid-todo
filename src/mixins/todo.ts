@@ -1,23 +1,28 @@
 export const todo = {
   data: () => ({
-    tasks: [
-      {
-        name: 'Hello World!',
-        done: false,
-        created: new Date(),
-      },
-      {
-        name: 'This is a very long task which might span over multiple lines.',
-        done: true,
-        created: new Date(),
-      },
-    ],
+    tasks: [],
   }),
+  mounted() {
+    if (localStorage.tasks) {
+      this.tasks = JSON.parse(localStorage.tasks);
+    }
+  },
+  methods: {
+    addTask(task) {
+      this.tasks.push({
+        name: task,
+        done: false,
+        created: new Date()
+      });
+    },
+  },
   watch: {
     tasks: {
-      handler() {
-        // eslint-disable-next-line
-        console.log('TODOS UPDATED!');
+      handler(newTasks, oldTasks) {
+        if (JSON.stringify(newTasks) != localStorage.tasks) {
+          console.log("Todo updated");
+          localStorage.tasks = JSON.stringify(newTasks);
+        }
       },
       deep: true,
     },
