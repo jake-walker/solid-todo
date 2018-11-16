@@ -4,29 +4,30 @@ import 'vuetify/dist/vuetify.min.css';
 import Vue from 'vue';
 import Vuetify from 'vuetify';
 
-// eslint-disable-next-line
-//import * as $rdf from 'rdflib';
-// eslint-disable-next-line
-//import * as auth from 'solid-auth-client';
+import colors from 'vuetify/lib/util/colors';
 
 import App from './App';
 import router from './router';
 
-// eslint-disable-next-line
-//import './external/solid-file-client';
-
 import { solid } from './mixins/solid.ts';
 import { todo } from './mixins/todo.ts';
+import { settings } from './mixins/settings.ts';
 
-Vue.use(Vuetify);
+Vue.use(Vuetify, {
+  theme: {
+    primary: colors.green.darken1,
+    secondary: colors.green.lighten4,
+    accent: colors.blue.base,
+  },
+});
 
 Vue.use(require('vue-moment'));
 
 Vue.config.productionTip = false;
 
-Vue.mixin(todo);
-
+Vue.mixin(settings);
 Vue.mixin(solid);
+Vue.mixin(todo);
 
 /* eslint-disable no-new */
 new Vue({
